@@ -4,7 +4,11 @@ pragma solidity ^0.8.8;
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "./PriceConverter.sol";
 
+/*
+ errors 
+*/
 error FundMe__NotOwner();
+error FundeMe_PayMoreEth(uint256 MINIMUM_USD, uint256 yourPay);
 
 contract FundMe {
     // Type declarations
@@ -18,7 +22,7 @@ contract FundMe {
 
     // Could we make this constant?  /* hint: no! We should make it immutable! */
     address private immutable i_owner;
-    uint256 public constant MINIMUM_USD = 50 * 10**18;
+    uint256 public constant MINIMUM_USD = 50 * 10 ** 18;
 
     constructor(address priceFeedAddress) {
         i_owner = msg.sender;
@@ -26,10 +30,13 @@ contract FundMe {
     }
 
     function fund() public payable {
-        require(
-            msg.value.getConversionRate(s_priceFeed) >= MINIMUM_USD,
-            "You need to spend more ETH!"
-        );
+        if (msg.value.getConversionRate(s_priceFeed) <= MINIMUM_USD) {
+            revert FundeMe_PayMoreEth(MINIMUM_USD, msg.value);
+        }
+        // require(
+        //     msg.value.getConversionRate(s_priceFeed) >= MINIMUM_USD,
+        //     "You need to spend more ETH!"
+        // );
         // require(PriceConverter.getConversionRate(msg.value) >= MINIMUM_USD, "You need to spend more ETH!");
         s_addressToAmountFunded[msg.sender] += msg.value;
         s_funders.push(msg.sender);
@@ -94,29 +101,15 @@ contract FundMe {
         return s_funders[_index];
     }
 
-    function getAddressToAmountFunded(address _funder)
-        public
-        view
-        returns (uint256)
-    {
+    function getAddressToAmountFunded(
+        address _funder
+    ) public view returns (uint256) {
         return s_addressToAmountFunded[_funder];
     }
 
     function getPriceFeed() public view returns (AggregatorV3Interface) {
         return s_priceFeed;
     }
-
-    // Explainer from: https://solidity-by-example.org/fallback/
-    // Ether is sent to contract
-    //      is msg.data empty?
-    //          /   \
-    //         yes  no
-    //         /     \
-    //    receive()?  fallback()
-    //     /   \
-    //   yes   no
-    //  /        \
-    //receive()  fallback()
 
     fallback() external payable {
         fund();

@@ -2,8 +2,6 @@ require("@nomicfoundation/hardhat-toolbox")
 require("hardhat-deploy")
 require("dotenv").config()
 require("@nomiclabs/hardhat-etherscan")
-require("./tasks/block-number")
-require("./tasks/accounts")
 require("hardhat-gas-reporter")
 require("solidity-coverage")
 
