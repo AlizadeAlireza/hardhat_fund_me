@@ -10,6 +10,11 @@ import "./PriceConverter.sol";
 error FundMe__NotOwner();
 error FundeMe_PayMoreEth(uint256 MINIMUM_USD, uint256 yourPay);
 
+/// @title a depoite contract
+/// @author alireza alizadeh
+/// @notice for deposite your money and can get back it
+/// @dev can be better at deployments
+
 contract FundMe {
     // Type declarations
     using PriceConverter for uint256;
