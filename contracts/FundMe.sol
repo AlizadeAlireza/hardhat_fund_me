@@ -14,21 +14,28 @@ contract FundMe {
     // Type declarations
     using PriceConverter for uint256;
 
-    // state variables
+    /*
+     state variables 
+    */
     mapping(address => uint256) private s_addressToAmountFunded;
+
     address[] private s_funders;
 
+    uint256 public constant MINIMUM_USD = 50 * 10 ** 18;
+    address private immutable i_owner;
     AggregatorV3Interface private s_priceFeed;
 
-    // Could we make this constant?  /* hint: no! We should make it immutable! */
-    address private immutable i_owner;
-    uint256 public constant MINIMUM_USD = 50 * 10 ** 18;
-
+    /*
+     constructor 
+    */
     constructor(address priceFeedAddress) {
         i_owner = msg.sender;
         s_priceFeed = AggregatorV3Interface(priceFeedAddress);
     }
 
+    /*
+     functions
+    */
     function fund() public payable {
         if (msg.value.getConversionRate(s_priceFeed) <= MINIMUM_USD) {
             revert FundeMe_PayMoreEth(MINIMUM_USD, msg.value);
@@ -40,12 +47,6 @@ contract FundMe {
         // require(PriceConverter.getConversionRate(msg.value) >= MINIMUM_USD, "You need to spend more ETH!");
         s_addressToAmountFunded[msg.sender] += msg.value;
         s_funders.push(msg.sender);
-    }
-
-    function getVersion() public view returns (uint256) {
-        // ETH/USD price feed address of Goerli Network.
-
-        return s_priceFeed.version();
     }
 
     modifier onlyOwner() {
@@ -93,6 +94,9 @@ contract FundMe {
         require(success, "");
     }
 
+    /*
+     getter functions
+    */
     function getOwner() public view returns (address) {
         return i_owner;
     }
@@ -109,6 +113,12 @@ contract FundMe {
 
     function getPriceFeed() public view returns (AggregatorV3Interface) {
         return s_priceFeed;
+    }
+
+    function getVersion() public view returns (uint256) {
+        // ETH/USD price feed address of Goerli Network.
+
+        return s_priceFeed.version();
     }
 
     fallback() external payable {
